@@ -7,6 +7,15 @@ MEALS = (
     ('L', 'Lunch'),
     ('D', 'Dinner'),
 )
+class Rarity(models.Model):
+  name = models.CharField(max_length=50)
+  color = models.CharField(max_length=20)
+
+  def __str__(self):
+    return self.name
+
+  def get_absolute_url(self):
+    return reverse('rarities_detail', kwargs={'pk': self.id})
 
 # Create your models here.
 class Finch(models.Model):
@@ -14,12 +23,18 @@ class Finch(models.Model):
     breed = models.CharField(max_length=100)
     description = models.TextField(max_length=250)
     age = models.IntegerField()
+    rarities = models.ManyToManyField(Rarity)
 
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
         return reverse('detail', kwargs={'finch_id': self.id})
+
+    def fed_for_today(self):
+        return self.feeding_set.filter(date=date.today()).count() >= len(MEALS)
+    
+
 
 class Feeding(models.Model):
   date = models.DateField('feeding date')
@@ -28,7 +43,7 @@ class Feeding(models.Model):
 	 choices=MEALS,
 	 default=MEALS[0][0]
   )
-  # Create a cat_id FK
+
   finch = models.ForeignKey(Finch, on_delete=models.CASCADE)
 
   def __str__(self):
